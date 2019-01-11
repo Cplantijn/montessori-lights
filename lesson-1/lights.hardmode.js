@@ -17,6 +17,8 @@ board.on("ready", function () {
   // Game logic
   var ledOrdering = [];
   var waitingForPlayer = false;
+  var playerScore = 0;
+  var round = 0;
 
   // Red LED Button Pushed
   redLedButton.on("down", function () {
@@ -59,6 +61,8 @@ board.on("ready", function () {
 
   // Start Button Pushed
   startButton.on("down", async function () {
+    playerScore = 0;
+    round = 0;
     await blinkAllLeds();
     await sleep(1000);
     await startNewGame();
@@ -74,8 +78,11 @@ board.on("ready", function () {
       getRandomLedPosition()
     ];
 
+    for (let i = 0; i < round; i++) {
+      ledOrdering.push(getRandomLedPosition());
+    }
+
     await playLightsInOrderGiven(ledOrdering);
-    console.log("Now waiting for player");
     waitingForPlayer = true;
   }
 
@@ -84,38 +91,37 @@ board.on("ready", function () {
       ledOrdering.shift();
 
       if (ledOrdering.length == 0) {
+        playerScore = playerScore + (300 * (round + 1));
+
         await sleep(500);
+        round = round + 1;
         startNewGame();
       }
     } else {
       // Game over!
-      waitingForPlayer = false;
-      redLed.blink(100);
-      await sleep(4000);
-      redLed.stop();
-      redLed.off();
+      endGame();
     }
   }
 
+  async function endGame() {
+    waitingForPlayer = false;
+    redLed.blink(100);
+    await sleep(2000);
+    redLed.stop();
+    redLed.off();
+    console.log('============================');
+    console.log(`Player score: ${playerScore}`);
+    console.log(`Rounds survived: ${round}`);
+    console.log('============================');
+  }
+
   async function playLightsInOrderGiven(order) {
-    console.log("Starting new game");
-    // First Led
-    ledArray[order[0]].on();
-    await sleep(250);
-    ledArray[order[0]].off();
-    await sleep(250);
-
-    // Second Led
-    ledArray[order[1]].on();
-    await sleep(250);
-    ledArray[order[1]].off();
-    await sleep(250);
-
-    // Third Led
-    ledArray[order[2]].on();
-    await sleep(250);
-    ledArray[order[2]].off();
-    await sleep(250);
+    for(let i = 0; i < order.length; i++) {
+      ledArray[order[i]].on();
+      await sleep(250);
+      ledArray[order[i]].off();
+      await sleep(250);
+    }
   }
 
   async function blinkAllLeds() {
