@@ -1,0 +1,22 @@
+{
+  "name": "montessori-lights",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^2.2.0",
+    "fastify-static": "^2.4.0",
+    "fastify-ws": "^1.0.1",
+    "johnny-five": "^1.0.0",
+    "ko-sleep": "^1.0.3",
+    "random": "^2.0.12",
+    "temporal": "^0.7.1",
+    "thread-sleep": "^2.1.0",
+    "uuid": "^3.3.2"
+  }
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/app/style.css">
+  <link rel="stylesheet" type="text/css" href="/app/animate.css">
+  <title>Lights Game!</title>
+</head>
+<body>
+  <div id="gameStart">
+    <h1 id="title">Lights Memory Game</h1>
+    <div id="logos">
+      <img src="/app/red_led.png" alt="">
+      <img src="/app/blue_led.png" alt="">
+      <img src="/app/green_led.png" alt="">
+    </div>
+    <h2 id="gameInstructions">Press the Game Start Button on the micro-controller to start!</h2>
+    <h1 id="bigMessage"></h1>
+    <div id="currentRound">
+      <h1>Round <span id="currentRoundNum"></span></h1>
+      <h2>Player Score <span id="currentPlayerScore"></span></h2>
+    </div>
+    <h2 id="endSummary"></h2>
+  </div>
+  <script src="/app/howler.js"></script>
+  <script>
+    var sounds = new Howl({
+      src: ['/app/effects.ogg', '/app/effects.mp3', '/app/effects.m4a', '/app/effects.ac3'],
+      sprite: {
+        ready: [0, 812.5850340136055],
+        go: [2000,518.4353741496599],
+        game_over: [4000, 2093.6054421768713],
+        new_record: [8000, 2738.4353741496598],
+        next_round: [12000, 244.92063492063565],
+        crowd_cheer: [14000, 4388.208616780044],
+        crowd_shocked: [ 20000, 1399.8185941043068]
+      }
+    });
+    
+    const host = location.origin.replace(/^http/, 'ws');
+    const ws = new WebSocket(host);
+    ws.onmessage = msg => handleMessage(JSON.parse(msg.data));
+
+    function handleMessage(msg) {
+      console.log({ msg });
+
+      switch(msg.code) {
+        case 'NEW_GAME':
+          wipeToNewGame();
+          break;
+        case 'ROUND_ADVANCED':
+          showUpdatedRound(msg.round);
+          break;
+        case 'UPDATE_SCORE':
+          showUpdatedScore(msg.playerScore);
+          break;
+        case 'GAME_OVER':
+          endGame(msg.round, msg.playerScore);
+          break;
+        default:
+        // nada
+      }
+    }
+
+    function wipeToNewGame() {
+      document.getElementById('title').style.display = 'block';
+      document.getElementById('logos').style.display = 'block';
+      document.getElementById('gameInstructions').style.display = 'none';
+      document.getElementById('endSummary').style.display = 'none';
+      document.getElementById('endSummary').innerText = '';
+      document.getElementById('bigMessage').style.display = 'none';
+      document.getElementById('currentRound').style.display = 'none';
+
+      document.getElementById('bigMessage').classList.remove('animated', 'fadeInDown', 'bigger');
+      document.getElementById('bigMessage').style.display = 'block';
+      document.getElementById('bigMessage').innerText = 'Ready...';
+      document.getElementById('bigMessage').classList.add('animated', 'fadeInDown');
+
+      sounds.play('ready');
+
+      setTimeout(function() {
+        document.getElementById('bigMessage').classList.remove('animated', 'fadeInDown');
+        document.getElementById('bigMessage').innerText = 'Go!';
+        document.getElementById('bigMessage').classList.add('animated', 'bounceIn', 'bigger');
+
+        sounds.play('go');
+      }, 1000);
+
+      setTimeout(function() {
+        document.getElementById('bigMessage').style.display = 'none';
+        document.getElementById('currentRound').style.display = 'flex';
+        document.getElementById('bigMessage').classList.remove('animated', 'fadeInDown', 'bounceIn');
+        document.getElementById('currentRoundNum').innerText = 1;
+        document.getElementById('currentPlayerScore').innerText = 0;
+      }, 1800);
+    }
+
+    function showUpdatedRound(round) {
+      document.getElementById('currentRoundNum').classList.remove('animated', 'bounceIn');
+      document.getElementById('currentRoundNum').innerText = round;
+      document.getElementById('currentRoundNum').classList.add('animated', 'bounceIn');
+    }
+
+    function showUpdatedScore(score) {
+      
+      sounds.play('next_round');
+      document.getElementById('currentRound').style.display = 'flex';
+      document.getElementById('currentPlayerScore').innerText = score;
+    }
+
+    function endGame(round, score) {
+      sounds.play('crowd_shocked');
+      document.getElementById('currentRound').style.display = 'flex';
+      document.getElementById('currentRound').classList.remove('animated', 'fadeOutDown');
+      document.getElementById('currentRound').classList.add('animated', 'fadeOutDown');
+
+      setTimeout(function() {
+        document.getElementById('title').style.display = 'none';
+        document.getElementById('logos').style.display = 'none';
+        document.getElementById('bigMessage').classList.remove('animated', 'fadeOutDown');
+        document.getElementById('bigMessage').style.display = 'flex';
+        document.getElementById('bigMessage').innerText = 'GAME';
+        document.getElementById('bigMessage').classList.add('animated', 'zoomIn', 'bigger');
+
+        sounds.play('game_over');
+      }, 1500);
+
+      setTimeout(function () {
+        document.getElementById('bigMessage').classList.remove('animated', 'zoomIn');
+        document.getElementById('bigMessage').innerText = 'OVER';
+        document.getElementById('bigMessage').classList.add('animated', 'zoomIn');
+      }, 2600);
+
+      setTimeout(function () {
+        document.getElementById('bigMessage').classList.remove('animated', 'zoomIn');
+        document.getElementById('bigMessage').innerText = 'OVER';
+        document.getElementById('bigMessage').classList.add('animated', 'slideOutDown');
+      }, 4500);
+
+      setTimeout(function () {
+        document.getElementById('bigMessage').classList.remove('animated', 'zoomIn', 'slideOutDown');
+        document.getElementById('currentRound').classList.remove('animated', 'fadeOutDown');
+        document.getElementById('currentRound').style.display = 'none';
+        document.getElementById('bigMessage').style.display = 'none';
+        document.getElementById('title').style.display = 'block';
+        document.getElementById('logos').style.display = 'block';
+        document.getElementById('endSummary').style.display = 'flex';
+        document.getElementById('endSummary').innerText = `You made it to round ${round} with a final score of ${score}!`;
+      }, 5500);
+    }
+  </script>
+</body>
+</html>
